@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/adyktiv/exercise6/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise6.dir/main.cpp.o -c /home/adyktiv/exercise6/main.cpp",
+  "file": "/home/adyktiv/exercise6/main.cpp"
+}
+]
