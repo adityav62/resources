@@ -21,8 +21,27 @@ RELEVANT EXAMPLES: delta_delay, feedback_loop, swapping_example, thread_example,
 --------------------------------------------///SystemC Advanced///--------------------------------------------------------------
 
 
-TOPICS DISCUSSED:
-RELEVANT EXAMPLES:
+TOPICS DISCUSSED: data types, and_reduce() methods, Channels, Interfaces
+
+--signal is special case of Channel - Channels are containers for communication protocols
+--Interface defines channel behaviour, Channel implements one or more interfaces
+--Specialized Ports such as sc_in, sc_out, sc_inout are used for sc_signal, for RTL modelling and easy use
+--sc_signal is a special type of channel - so are sc_fifo and sc_buffer, both being special cases of sc_signal which implement notifications, along with read and write
+
+--signals can be exchanged with a FIFO or a Buffer - because the interface of all these signals and FIFOs is the same, we can interchange the communication models - an example of this is to put in a Ethernet Network or CAN bus or SPI Bus or I2C - modules do not know which channel is there because they use the same interface for write and read
+-- sc_in<int> foo; is short MACRO for sc_port< sc_signal_in_if<int> > Foo;
+--sc_out<bool> bar; which is short MACRO for sc_port< sc_signal_inout_if<bool> > Bar;
+--sc_port has the parameters - Interface (required), N (maximum number of channels to be bound - optional), Policy (optional)
+
+--complex channels like FIFO can only be modeled using SC_THREADS because SC_METHODS can't be used for blocking processes - blocking functions call an internal wait(), which SC_METHOD can't allow (will result in runtime error)
+--primitive channels in SystemC = sc_signal, sc_buffer, sc_fifo, sc_mutex, sc_semaphore
+--making your own custom primitve channel --> see slide 33 or example 'custom_signal'
+
+--Hierachical Channels (non-primitive, active) --> have logic + usual channel stuff (useful in buses like CAN which use Arbitration)
+
+--sc_buffer:==> The difference to sc_signal is that with sc_buffer an event is generated each time the write() method is called.With sc_signal, an event is only generated if the old and the new value of the signal are different
+
+RELEVANT EXAMPLES: custom_fifo, fifo_example, kpn_example, mutex_example, custom_signal, portarrays, multiports, sc_event_and_queue, event_finder, dynamic_processes, reporting, callbacks
 
 --------------------------------------------///TLM Basics///--------------------------------------------------------------------
 
