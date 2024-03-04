@@ -64,6 +64,7 @@ TOPICS DISCUSSED: speed v/s accuracy tradeoff, LT vs AT difference, LT, Generic 
 --In TLM, we will use Call by Reference using a pointer - in TLM, we don’t transfer the entire packet, we just transfer a pointer (a 64 bit number) - makes simulation really fast
 --LT faster than AT {as fast as possible, fast enough to build SW, SW dev centric}
 --LT implements blocking transport calls
+--LT can't model OOO execution and Backpressure
 --can't be used to model out-of-order execution
 --Processes can run ahead of simulation time (temporal decoupling)
 
@@ -73,6 +74,7 @@ TOPICS DISCUSSED: speed v/s accuracy tradeoff, LT vs AT difference, LT, Generic 
 --in LT style, we want to avoid wait() statements as much as possible - instead, try to annotate time on the local variables which are passed with the transport calls and the target can add its own custom delay to it
 --If we have multiple transport calls, make the local delay variable keep accumulating the value of delay{pass it as argument to every transport call}, 
 and then wait with the accumulated delay value wait(delay) once at the end of a sequence of transports
+--In LT, only Initiator calls wait() statements
 
 --Interconnect acts as a Target on Initiator (Producer) side and a Initiator on the Target (Consumer) side
 --If there is one initiator and 2 Targets, the Interconnect internally will have two iSockets and one tSocket (because of above)
@@ -90,6 +92,7 @@ and then wait with the accumulated delay value wait(delay) once at the end of a 
 
 --Debug Transport used to bypass bootloading process - putting bootloader into memory should not be simulated - so start simulation with everything loaded, thus no delay
 --when we use Debug Transport, it does not simulate time, so bootloading process can be done in it, and it won't be accounted towards simulation time.
+--so it is similar to b_transport except, it is delay free, has no waits and no event notifications
 
 
 RELEVANT EXAMPLES: custom_tlm, tlm_lt_initiator_target, tlm_lt_initiator_interconnect_target, tlm_quantum_keeper, tlm_lt_dmi
@@ -97,6 +100,22 @@ RELEVANT EXAMPLES: custom_tlm, tlm_lt_initiator_target, tlm_lt_initiator_interco
 --------------------------------------------///TLM Advanced///------------------------------------------------------------------
 
 
-TOPICS DISCUSSED:
-RELEVANT EXAMPLES:
+TOPICS DISCUSSED: AT, 4-cycle non-blocking transport, Backpressure, PEQs, Exclusion Rules
+
+--with AT, we model for accuracy, not speed
+--AT uses non-blocking transport ⇒ we make a request and return. The target will notify the initiator when it is ready - 
+it is a classical 4-cycle handshake - allows modeling of out-of-order (OOO) cores and backpressures
+
+--backpressure refers to a situation where the producer is generating data faster than the consumer can handle.
+--nonblocking transport also sends current phase along with payload object and delay variable
+--4 phases of NB communication: BEGIN_REQ, END_REQ, BEGIN_RESP, END_RESP
+--nb_transport_fw() handles BEGIN_REQ and END_RESP phases
+--nb_transport_bw() handles END_REQ and BEGIN_RESP phases
+
+--Latency can also be introduced between phases by adding the delays - Request Accept Delay, Latency of Target and Response Accept Delay - Latency of Target is the time it takes for Target to fetch what the Initiator needs (have it ready basically) - these delays can be modeled by using the times in the FW and BW transport calls - recall Time Annotation (making a component pretend as if something takes longer than it actually does in order to model real-HW behaviour) - this can be done on either side, not just accumulation and calling of wait(delay) statement on the Initiator side - in that sense, we have more flexibility than Blocking Transport in LT, and we can even have wait() statements on the Target side - to have a much finer granularity for synchronization.
+
+
+
+RELEVANT EXAMPLES: tlm_memory_manager, tlm_simple_sockets, tlm_multipassthrough_sockets, tlm_at_backpressure, tlm_payload_extensions
+
 --------------------------------------------------------------------------------------------------------------------------------
