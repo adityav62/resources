@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/exercise4.dir/main.cpp.o -o exercise4  -Wl,-rpath,/opt/systemc/lib-linux64 /opt/systemc/lib-linux64/libsystemc.so 
