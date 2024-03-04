@@ -94,13 +94,26 @@ and then wait with the accumulated delay value wait(delay) once at the end of a 
 --when we use Debug Transport, it does not simulate time, so bootloading process can be done in it, and it won't be accounted towards simulation time.
 --so it is similar to b_transport except, it is delay free, has no waits and no event notifications
 
+--to divide memory into multiple banks, use something of the form:
+// Calculate the memory size per module
+const int memorySizePerModule = totalMemorySize / numModules;
+
+// Determine the module index based on the address
+int moduleIndex = trans.get_address() / memorySizePerModule;
+
+// Correct the address for the specific module
+trans.set_address(trans.get_address() % memorySizePerModule);
+
+// Call the appropriate socket based on the module index
+iSocket[moduleIndex]->b_transport(trans, delay);
+
 
 RELEVANT EXAMPLES: custom_tlm, tlm_lt_initiator_target, tlm_lt_initiator_interconnect_target, tlm_quantum_keeper, tlm_lt_dmi
 
 --------------------------------------------///TLM Advanced///------------------------------------------------------------------
 
 
-TOPICS DISCUSSED: AT, 4-cycle non-blocking transport, Backpressure, PEQs, Exclusion Rules
+TOPICS DISCUSSED: AT, 4-cycle non-blocking transport, Backpressure, PEQs, Exclusion Rules, pipelining transactions, Generic Payload Pools or Memory Manager, Early Completion (Blocking Transport with AT - useful for modeling simple I/O where no acknowledgement is required), Simple Sockets, TAgged Simple Sockets, multipassthrough sockets, Modeling Backpressure with Buffers, Payload Extensions
 
 --with AT, we model for accuracy, not speed
 --AT uses non-blocking transport ⇒ we make a request and return. The target will notify the initiator when it is ready - 
@@ -114,8 +127,44 @@ it is a classical 4-cycle handshake - allows modeling of out-of-order (OOO) core
 
 --Latency can also be introduced between phases by adding the delays - Request Accept Delay, Latency of Target and Response Accept Delay - Latency of Target is the time it takes for Target to fetch what the Initiator needs (have it ready basically) - these delays can be modeled by using the times in the FW and BW transport calls - recall Time Annotation (making a component pretend as if something takes longer than it actually does in order to model real-HW behaviour) - this can be done on either side, not just accumulation and calling of wait(delay) statement on the Initiator side - in that sense, we have more flexibility than Blocking Transport in LT, and we can even have wait() statements on the Target side - to have a much finer granularity for synchronization.
 
+--It is important for the 4 phases be in the order and must occur in the increasing simulation time order + Phases must change with each call
+--nb_transport_fw() must not call nb_transport_bw() directly and vice versa - there must be some kind of Synchronization which must be done by ***Payload Event Queues (PEQs) *** 
+they just call wait() statements internally
+--Target should handle mixed `b_transport` / `nb_transport` to be fully standard compliant
 
+--MM --> new payload object only created when current number not enough - initially, some will br created 
+-- Modules that send (or receive) this payload object must increase a reference count (acquire), which signalizes the memory manager that this object is still in use.
+--If a module is finished with the payload object, the reference count is decreased (release)
+--If the reference count is 0 the payload is freed and goes back into the pool - must be cleaned up before putting back in pool
+--b_transport of LT MAY use a Memory Manager
+--nb_transport() of AT MUST use a Memory Manager
+--Memory Manager is not part of SystemC standard!!! - standard only provides an Interface
+
+--AT models use the PEQs to synchronize incoming calls with the simulation time (instead of calling wait() statements), unlike LT where we add up delays on a local time variable and do temporal decoupling
+--PEQs are used at several places - each Initiator and each Target will have its own PEQ in the AT model for timing annotation
+
+--modeling AT handshake similar to blockign transport --> Early Completion shortcut - Initiator sends a BEGIN_REQ, target says, okay done, and immediately responds with TLM_COMPLETED
+--Initiator must immediately check the response status of the Generic Payload Object. With TLM_COMPLETED, the caller should always ignore the phase argument as it becomes a Don’t Care (d.c.)
+
+--Simple sockets -->less code, declaring the socket no longer requires inheriting from Target/Initiator Interfaces, just template it with the class name 
+--include the tlm_utils\simple_initiator_socket.h
+--Instead of implementing dummy functions and callbacks, just mention in the constructor, that we want to register a nonblocking transport BW function with the defined socket, and this function should be equal to &Initiator::nb_transport_bw - this is then implemented in our class and so when NB transport BW is called, the request is forwarded to our implementation of it, via the function pointer
+--Advantage? dummy code is avoided, both blocking and nonblocking transport functions can be registered
+
+--Tagged Simple Sockets --> Allows registering the same callback method with several sockets, origin of incoming transactions is distinguished using socket ID
+--Interconnect is usually template class for number of target and initiator targets, can be used to model a BUS
+--In order to implement a BUS, either use simple target sockets (meaning number of I's and T's are part of template for BUS interconnect) tagged with routing tables - to store relation between input and output ports
+--this relation can also be attached to the implementation using an extension - maps can also be used
+
+--Multipassthrough Sockets --> similar to tagged sockets but there is only one socket - also makes use of IDs
+-- allows dynamic binding - number of components in system does not have to be known at compile time
+-- order of binding determines IDs in the function calls
+
+--Modeling Backpressure with Buffer:
+- When modeling a larger buffer, instead of using wait() statements or events for notifications, we can just declare our custom phases as long as they’re only used internally
+- `numberOfTransactions` tells us how full the buffer is
 
 RELEVANT EXAMPLES: tlm_memory_manager, tlm_simple_sockets, tlm_multipassthrough_sockets, tlm_at_backpressure, tlm_payload_extensions
 
 --------------------------------------------------------------------------------------------------------------------------------
+
