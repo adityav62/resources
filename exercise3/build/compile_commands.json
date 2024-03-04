@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/adyktiv/exercise3/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise3.dir/main.cpp.o -c /home/adyktiv/exercise3/main.cpp",
+  "file": "/home/adyktiv/exercise3/main.cpp"
+},
+{
+  "directory": "/home/adyktiv/exercise3/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise3.dir/state_machine.cpp.o -c /home/adyktiv/exercise3/state_machine.cpp",
+  "file": "/home/adyktiv/exercise3/state_machine.cpp"
+},
+{
+  "directory": "/home/adyktiv/exercise3/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise3.dir/stimuli.cpp.o -c /home/adyktiv/exercise3/stimuli.cpp",
+  "file": "/home/adyktiv/exercise3/stimuli.cpp"
+}
+]
