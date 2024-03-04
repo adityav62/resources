@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/home/adyktiv/exercise5/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise5.dir/main.cpp.o -c /home/adyktiv/exercise5/main.cpp",
+  "file": "/home/adyktiv/exercise5/main.cpp"
+},
+{
+  "directory": "/home/adyktiv/exercise5/build",
+  "command": "/usr/bin/c++  -I/opt/systemc/include -g -o CMakeFiles/exercise5.dir/kpn.cpp.o -c /home/adyktiv/exercise5/kpn.cpp",
+  "file": "/home/adyktiv/exercise5/kpn.cpp"
+}
+]
