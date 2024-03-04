@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/exercise8.dir/main.cpp.o CMakeFiles/exercise8.dir/memory_manager.cpp.o -o exercise8  -Wl,-rpath,/opt/systemc/lib-linux64 /opt/systemc/lib-linux64/libsystemc.so 

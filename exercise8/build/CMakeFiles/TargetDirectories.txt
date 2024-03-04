@@ -1,0 +1,3 @@
+/home/adyktiv/exercise8/build/CMakeFiles/exercise8.dir
+/home/adyktiv/exercise8/build/CMakeFiles/edit_cache.dir
+/home/adyktiv/exercise8/build/CMakeFiles/rebuild_cache.dir
