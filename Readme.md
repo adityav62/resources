@@ -21,7 +21,7 @@ RELEVANT EXAMPLES: delta_delay, feedback_loop, swapping_example, thread_example,
 --------------------------------------------///SystemC Advanced///--------------------------------------------------------------
 
 
-TOPICS DISCUSSED: data types, and_reduce() methods, Channels, Interfaces
+TOPICS DISCUSSED: data types, and_reduce() methods, Channels, Interfaces, Primitive Channel  - {FIFO, Buffer, Signal}, Dynamic Processes, Report Handling, Callbacks
 
 --signal is special case of Channel - Channels are containers for communication protocols
 --Interface defines channel behaviour, Channel implements one or more interfaces
@@ -40,6 +40,16 @@ TOPICS DISCUSSED: data types, and_reduce() methods, Channels, Interfaces
 --Hierachical Channels (non-primitive, active) --> have logic + usual channel stuff (useful in buses like CAN which use Arbitration)
 
 --sc_buffer:==> The difference to sc_signal is that with sc_buffer an event is generated each time the write() method is called.With sc_signal, an event is only generated if the old and the new value of the signal are different
+
+--! Two Ports cannot be bound to the same channel - for signals and FIFOs in example ‘portarrays’ - doing so gives an error - sc_fifo<T> cannot have more than one writer
+--In SystemC, the order of execution of processes within the same delta cycle is not deterministic.
+--If ports are created dynamically, use port.size() within module's process function to work on inidividual ports iteratively
+
+--4 kinds of callbacks for sc_module, sc_prim_channel, sc_port and sc_export - see slide 53
+◼ before_end_of_elaboration()
+◼ end_of_elaboration()
+◼ start_of_simulation()
+◼ end_of_simulation()
 
 RELEVANT EXAMPLES: custom_fifo, fifo_example, kpn_example, mutex_example, custom_signal, portarrays, multiports, sc_event_and_queue, event_finder, dynamic_processes, reporting, callbacks
 
