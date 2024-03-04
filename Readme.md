@@ -54,10 +54,46 @@ TOPICS DISCUSSED: data types, and_reduce() methods, Channels, Interfaces, Primit
 RELEVANT EXAMPLES: custom_fifo, fifo_example, kpn_example, mutex_example, custom_signal, portarrays, multiports, sc_event_and_queue, event_finder, dynamic_processes, reporting, callbacks
 
 --------------------------------------------///TLM Basics///--------------------------------------------------------------------
+In TLM, we are not simulating clocks and pins, just the function calls between components - by transfer of packets - from the event perspective, 
+the only thing that matters is we know when communication starts and when does it end.
+
+TOPICS DISCUSSED: speed v/s accuracy tradeoff, LT vs AT difference, LT, Generic Payload, Sockets, Time Annotation, Interconnect Component, Temporal Decoupling, Quantum Keeper, DMI, Debug Transport
+
+--Everything in TLM domain is memory mapped
+--no need to deal with delta cycling
+--In TLM, we will use Call by Reference using a pointer - in TLM, we don’t transfer the entire packet, we just transfer a pointer (a 64 bit number) - makes simulation really fast
+--LT faster than AT {as fast as possible, fast enough to build SW, SW dev centric}
+--LT implements blocking transport calls
+--can't be used to model out-of-order execution
+--Processes can run ahead of simulation time (temporal decoupling)
+
+--In nonstandard TLM transaction between producer consumer without interconnect, the consumer does not need a port because it directly implements the transport call defined in transactionInterface.
+--Binding Initiator and Targets ==> ports of both derived from sc_port so we bind the iSocket to tSocket
+--The key idea of timing annotation is that the recipient is obliged to behave as if it had received the transaction at time sc_time_stamp() + delay
+--in LT style, we want to avoid wait() statements as much as possible - instead, try to annotate time on the local variables which are passed with the transport calls and the target can add its own custom delay to it
+--If we have multiple transport calls, make the local delay variable keep accumulating the value of delay{pass it as argument to every transport call}, 
+and then wait with the accumulated delay value wait(delay) once at the end of a sequence of transports
+
+--Interconnect acts as a Target on Initiator (Producer) side and a Initiator on the Target (Consumer) side
+--If there is one initiator and 2 Targets, the Interconnect internally will have two iSockets and one tSocket (because of above)
+--needs to be derived from both forward and backward transport interfaces
+--Pipelined Transactions or multiple initiator calls concurrently cannot be modelled with LT as transport calls are atomic, so there can be no collisions
+
+--Temporal Decoupling trades accuracy for speed, by reducing number of context switches - process keeps control until end of Quantum - lessens context switches in case of multiple initiators
+--Synchronization in Quantum Keeper ==> if there is time left in the quantum, it is consumed by internally calling wait() so that quantum notion is not broken.
+--In case of overrun, starts the next transaction with an offset equal to the delay encountered
+--smaller the quantum, higher the accuracy, larger the quantum, higher the speed
+
+--DMI used to bypass a detailed Interconnect (probably defined in RTL) - further increase in simulation speed
+--Target can set a DMI hint, but before Initiator can know about it, atleast one transaction has to be performed
+--Target can even invalidate DMI regions, meaning it can specify certain regions of memory where DMI must not be used.
+
+--Debug Transport used to bypass bootloading process - putting bootloader into memory should not be simulated - so start simulation with everything loaded, thus no delay
+--when we use Debug Transport, it does not simulate time, so bootloading process can be done in it, and it won't be accounted towards simulation time.
 
 
-TOPICS DISCUSSED:
-RELEVANT EXAMPLES:
+RELEVANT EXAMPLES: custom_tlm, tlm_lt_initiator_target, tlm_lt_initiator_interconnect_target, tlm_quantum_keeper, tlm_lt_dmi
+
 --------------------------------------------///TLM Advanced///------------------------------------------------------------------
 
 
