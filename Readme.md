@@ -169,3 +169,23 @@ RELEVANT EXAMPLES: tlm_memory_manager, tlm_simple_sockets, tlm_multipassthrough_
 --------------------------------------------------------------------------------------------------------------------------------
 Petri Nets --> A special kind of arc, the inhibitor arc, is used to reverse the logic of an input place. With an inhibitor arc, the absence of a token in the input place enables, not the presence
 
+- Why does my KPN work with or without a sensitivity list?
+    
+    In SystemC, the sensitivity list is used to specify the events that will trigger a process. However, in your friend’s case, the code still works without a sensitivity list because the processes (Split, Add, and Delay) are implemented as **infinite loops** and they are **thread processes**.
+    
+    In SystemC, thread processes are scheduled to run when simulation starts and they keep running until they either terminate or hit a wait statement. In your friend’s code, the wait statements are implicit within the read() and write() methods of the sc_fifo class. When a thread process hits a wait statement, it yields control back to the SystemC scheduler, which then schedules the next ready process.
+    
+    So, even without an explicit sensitivity list, the processes in your friend’s code are still being correctly scheduled and executed based on the implicit wait statements in the FIFO read() and write() operations. The sensitivity list is not required in this case because the processes are not sensitive to any particular events, but rather they keep running as long as there are data to process in the FIFOs.
+    
+    However, it’s good practice to use sensitivity lists when you’re working with method processes in SystemC, as they don’t have the concept of waiting and need to be triggered by some events. But for thread processes with infinite loops like in your friend’s code, it’s not necessary.
+    
+    **Does that mean I can always use SC_THREADS without a sensitivity list?**
+    
+    Not necessarily. While it’s true that `SC_THREAD` processes in SystemC are scheduled to run when the simulation starts and they keep running until they either terminate or hit a wait statement, there are cases where you might still want to use sensitivity lists with `SC_THREAD`.
+    
+    For example, if you have a thread process that should only execute when a certain event occurs (like a change on a particular signal), then you would use a sensitivity list to make the thread sensitive to that event. When the event occurs, the thread would be awakened from its wait state and resume execution.
+    
+    However, in many cases, especially when dealing with blocking reads/writes on channels like FIFOs (as in your Kahn Process Network example), the blocking nature of the read/write operations provides the necessary synchronization, and explicit sensitivity lists are not required.
+    
+    So, the need for sensitivity lists with `SC_THREAD` really depends on the specific behavior you want to model. It’s not a matter of never needing them, but rather understanding when they are necessary based on the requirements of your model.
+
