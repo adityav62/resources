@@ -167,4 +167,5 @@ they just call wait() statements internally
 RELEVANT EXAMPLES: tlm_memory_manager, tlm_simple_sockets, tlm_multipassthrough_sockets, tlm_at_backpressure, tlm_payload_extensions
 
 --------------------------------------------------------------------------------------------------------------------------------
+Petri Nets --> A special kind of arc, the inhibitor arc, is used to reverse the logic of an input place. With an inhibitor arc, the absence of a token in the input place enables, not the presence
 
